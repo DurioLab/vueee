@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Vue源码解读</title>
+	<script src="dist/seed.js"></script>
+</head>
+<body>
+	<h1>你好</h1>
+
+	<div id="test" sd-on-click="changeMessage | .button">
+      <p sd-text="msg | capitalize"></p>
+      <p sd-show="something">YOYOYO</p>
+      <p class="button" sd-text="msg"></p>
+      <p sd-class-red="error" sd-text="hello"></p>
+  </div>
+
+	<script>
+		var Seed = require('seed')
+		var app = Seed.create({
+			id:'test',
+			scope:{
+				msg:'hello',
+				hello:'QQQQQ',
+				changeMessage:function(event){
+					console.log(this)
+					app.scope.msg = 'hola'
+				}
+			}
+		})
+	</script>
+</body>
+</html>
