@@ -1,7 +1,7 @@
-var prefix = 'sd',
-		Filters = require('./filters'),
-		Directives = require('./directives'),
-		selector = Object.keys(Directives).map(function(d){
+var prefix 			= 'sd',
+		Filters 		= require('./filters'),
+		Directives 	= require('./directives'),
+		selector 		= Object.keys(Directives).map(function(d){
 			return '[' + prefix + '-' + d + ']'
 		}).join();
 
@@ -10,18 +10,20 @@ console.log(selector)
 function Seed(opts){
 	var self = this,
 			root = this.el = document.getElementById(opts.id),
-			els = root.querySelectorAll(selector),
-			bindings = {};
+			els = root.querySelectorAll(selector);
 
-	self.scope = {}
+	var bindings = self._bindings = {}; // 内部真正的数据
+	self.scope = {} // 外部接口
 
 	;[].forEach.call(els, processNode)
 	;processNode(root)
 
-
+	// 通过调用set初始化所有的数据
 	for (var key in bindings) {
 		self.scope[key] = opts.scope[key];
 	}
+
+
 
 	function processNode(el){
 		cloneAttributes(el.attributes).forEach(function(attr){
@@ -32,9 +34,28 @@ function Seed(opts){
 
 		})
 	}
-
-
 }
+
+Seed.prototype.dump = function(){
+	var data = {};
+	for (var key in this._bindings) {
+		data[key] = this._bindings[key].value
+	}
+	return data;
+}
+
+Seed.prototype.destroy = function(){
+	for (var key in this._bindings) {
+		this._bindings[key].directives.forEach(function(directive){
+			if (directive.definition.unbind) {
+				directive.definition.unbind(directive.el, directive.argument, directive);
+			}
+		})
+	}
+
+	this.el.parentNode.remove(this.el)
+}
+
 
 function cloneAttributes(attributes){
 	return [].map.call(attributes, function(attr) {
@@ -77,10 +98,13 @@ function bindAccessors(seed,key,binding){
 		set:function(value){
 			binding.value = value;
 			binding.directives.forEach(function(directive){
-				if (value && directive.filters) {
-					value = applyFilters(value,directive)
-				}
-				directive.update(directive.el, value, directive.argument, directive, seed);
+			
+				var filteredValue = value && directive.filters 
+						? applyFilters(value,directive) 
+						: value
+
+				directive.update(directive.el, filteredValue, directive.argument, directive, seed);
+
 			})
 		},
 		get:function(){

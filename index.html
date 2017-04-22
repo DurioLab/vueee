@@ -8,10 +8,12 @@
 	<h1>你好</h1>
 
 	<div id="test" sd-on-click="changeMessage | .button">
+			
       <p sd-text="msg | capitalize"></p>
       <p sd-show="something">YOYOYO</p>
       <p class="button" sd-text="msg"></p>
-      <p sd-class-red="error" sd-text="hello"></p>
+      <p sd-class-red="error" sd-text="msg.wow | uppercase"></p>
+      <button sd-on-click="removeEl">移除</button>
   </div>
 
 	<script>
@@ -19,11 +21,15 @@
 		var app = Seed.create({
 			id:'test',
 			scope:{
+				'msg.wow': 'wow',
 				msg:'hello',
-				hello:'QQQQQ',
+				hello:'qqqqqq',
 				changeMessage:function(event){
-					console.log(this)
-					app.scope.msg = 'hola'
+					app.scope['msg.wow'] = 'hola'
+				},
+				removeEl:function(){
+					
+					// app.destroy()
 				}
 			}
 		})

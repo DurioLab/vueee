@@ -29,11 +29,9 @@ module.exports = {
 
 		},
 		unbind: function(el, event, directive) {
-
 			if (directive.handlers) {
 				el.removeEventListener(event, directive.handlers[event])
 			}
-
 		},
 		customFilter: function(handler, selectors) { // selectors = filters   button
 			return function(e){
