@@ -1,6 +1,5 @@
 var config 			= require('./config'),
-		Directive 	= require('./directive'),
-		Directives 	= require('./directives')
+		bindingParser 	= require('./binding')
 
 var map = Array.prototype.map,
 		each = Array.prototype.forEach
@@ -16,10 +15,18 @@ function Seed(el, data, options){
 
 	this.el = el
 	this._bindings = {}; // 内部真正的数据
-	this.scope = {} // 外部接口
+	this.scope = data // 外部接口
 	this._options = options || {}
 
+
+	var key, dataCopy = {}
+	for (key in data) {
+		dataCopy[key] = data[key]
+	}
+
 	this._compileNode(el)
+
+
 
 	// 修改为 => 遍历子节点
 	// var els = el.querySelectorAll(config.selector)
@@ -28,7 +35,7 @@ function Seed(el, data, options){
 
 	// 通过调用set初始化所有的数据
 	for (var key in this._bindings) {
-		this.scope[key] = data[key];
+		this.scope[key] = dataCopy[key];
 	}
 
 
@@ -36,7 +43,8 @@ function Seed(el, data, options){
 
 
 Seed.prototype._compileNode = function(node){
-	var self = this
+	var self = this,
+			ctrl = config.prefix + '-controller'
 
 	if (node.nodeType === 3) {
 	
@@ -47,15 +55,22 @@ Seed.prototype._compileNode = function(node){
 		var attrs = map.call(node.attributes, function(attr) {
 			return {
 				name:attr.name,
-				value:attr.value
+				expressions:attr.value.split(',')
 			}
 		})
 
 		attrs.forEach(function(attr){
-			var directive = Directive.parse(attr)
-			if (directive) {
-				self._bind(node, directive)
-			}
+
+			if (attr.name === ctrl) return alert('ctrl')
+
+			attr.expressions.forEach(function(exp){
+				var binding = bindingParser.parse(attr.name, exp)
+				if (binding) {
+					self._bind(node, binding)
+				}
+
+			})
+			
 		})
 	}
 
@@ -68,48 +83,53 @@ Seed.prototype._compileNode = function(node){
 }
 
 Seed.prototype._compileTextNode = function(node){
-
+	return node
 }
 
-Seed.prototype._bind = function(node, directive){
+Seed.prototype._bind = function(node, bindingInstance){
 
-	directive.seed = this
-	directive.el = node
-	node.removeAttribute(directive.attr.name)
+	bindingInstance.seed = this
+	bindingInstance.el = node
+	node.removeAttribute(config.prefix + '-' + bindingInstance.directiveName)
 
-	var key = directive.key,
-			epr = this._options.eachPrefixRE
+	var key = bindingInstance.key, //each
+			scope = this.scope,
+			epr = this._options.eachPrefixRE,
+			isEach = epr && epr.test(key)
 	
-	if (epr) {
+
+	// 确保作用域链工作在嵌套控制器中
+	if (isEach) {
 		// todo. 移除掉  todo.title
 		key = key.replace(epr, '')
+		scope = this._options.parentScope  // 对于循环 继承父作用域
 	}
-	
-	var binding = this._bindings[key] || this._createBinding(key)
 
-	binding.directives.push(directive)
+	var binding = this._bindings[key] || this._createBinding(key, scope)
 
-	if (directive.bind) {
-		directive.bind.call(directive, binding.value) //binding.value 作用不大
+	binding.instances.push(bindingInstance)
+
+	if (bindingInstance.bind) {
+		bindingInstance.bind(binding.value) //binding.value 作用不大
 	}
 
 }
 
-Seed.prototype._createBinding = function(key){
+Seed.prototype._createBinding = function(key, scope){
 	var binding = {
-		value:undefined,
-		directives:[]
+		value:null,
+		instances:[]
 	}
 	this._bindings[key] = binding
 
-	Object.defineProperty(this.scope, key, {
+	Object.defineProperty(scope, key, {
 		get:function(){
 			return binding.value
 		},
 		set:function(value){
 			binding.value = value
-			binding.directives.forEach(function(directive){
-				directive.update(value)
+			binding.instances.forEach(function(instance){
+				instance.update(value)
 			})
 		}
 	})
@@ -128,15 +148,15 @@ Seed.prototype.dump = function(){
 Seed.prototype.destroy = function(){
 
 	for (var key in this._bindings) {
-		this._bindings[key].directives.forEach(unbind)
+		this._bindings[key].instances.forEach(unbind)
 		delete this._bindings[key]
 	}
 
 	this.el.parentNode.removeChild(this.el)
 
-	function unbind(directive){
-		if (directive.unbind) {
-			directive.unbind()
+	function unbind(instance){
+		if (instance.unbind) {
+			instance.unbind()
 		}
 	}
 

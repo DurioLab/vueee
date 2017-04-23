@@ -19,3 +19,9 @@ every  e.target.webkitMatchesSelector  slice  [].forEach.call  Object.defineProp
 3. apply方法与arguments参数 main.js Seed.apply(this,arguments)
 
 ### sd-each works
+
+### 一次大的重构
+1. 增加controller
+2. 嵌套scope
+3. 指令绑定方式修改  click:remove  :
+4. Directive类 => Binding类

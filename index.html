@@ -12,17 +12,18 @@
 <body>
 	<h1>你好</h1>
 
-	<div id="test" sd-on-click="changeMessage | delegate .button">
+	<div id="test">
 			
       <p sd-text="msg | capitalize"></p>
       <p sd-show="something">YOYOYO</p>
       <p class="button" sd-text="msg"></p>
-      <p sd-class-red="error" sd-text="msg.wow | money"></p>
-      <button sd-on-click="removeEl">移除</button>
+      <p sd-class="red:error" sd-text="msg.wow | money"></p>
+      <button sd-on="click:removeEl">移除</button>
 
-			<div sd-each-todo="todos">
+			<div sd-each="todo:todos">
 				<span sd-text="todo.title"></span>
 			</div>
+			
 
   </div>
 
@@ -33,28 +34,36 @@
 		    return '$' + value.toFixed(2)
 		})
 
+ 		var s = Date.now()
 
-		new Seed('#test',{
-			msg:'123',
-			'msg.wow':200,
-			error:'error',
-			todos:[
-				{
-					title:'1',
-					done:false
-				},{
-					title:'2',
-					done:true
+
+		Seed.bootstrap({
+			el:'#test',
+			data:{
+
+				msg:'123',
+				'msg.wow':Math.random() * 100000,
+				error:'error',
+				todos:[
+					{
+						title:'1',
+						done:false
+					},{
+						title:'2',
+						done:true
+					}
+				],
+				changeMessage:function(){
+					this.scope['msg.wow'] = 300
+				},
+				removeEl:function(){
+					this.destroy()
 				}
-			],
-			changeMessage:function(){
-				this.scope['msg.wow'] = 300
-			},
-			removeEl:function(){
-				this.destroy()
+
 			}
 		})
 
+		console.log(Date.now() - s + 'ms')
 
 		// Seed.seed('test',{
 		// 		'msg.wow': 'wow',
