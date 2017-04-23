@@ -5,6 +5,7 @@
   "scripts": [
     "src/main.js",
     "src/directives.js",
-    "src/filters.js"
+    "src/filters.js",
+    "src/directive.js"
   ]
 }

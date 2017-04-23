@@ -6,3 +6,9 @@
 
 知识点: 
 every  e.target.webkitMatchesSelector  slice  [].forEach.call  Object.defineProperty()
+
+
+### 第一次重构
+1. 将指令进行剥离 各司其职
+2. 正则表达式来分析指令，更加简洁
+
