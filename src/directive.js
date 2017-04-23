@@ -1,5 +1,6 @@
 var Directives = require('./directives'),
-		Filters = require('./filters')
+		Filters = require('./filters'),
+		config  = require('./config')
 
 var KEY_RE = /^[^\|]+/g,
 		FILTERS_RE = /\|[^\|]+/g
@@ -30,6 +31,7 @@ function Directive(def, attr, arg, key){
 
 			var tokens = filter.replace('|','').trim().split(/\s+/)
 			return {
+				name:tokens[0],
 				apply: Filters[tokens[0]],
 				args: tokens.length > 1 ? tokens.slice(1) : null
 			}
@@ -49,6 +51,7 @@ Directive.prototype.update = function(value){
 Directive.prototype.applyFilters = function(value){
 	var filtered = value
 	this.filters.forEach(function(filter){
+		if (!filter.apply) throw new Error('Unknown filter: ' + filter.name)
 		filtered = filter.apply(filtered, filter.args)
 	})
 	return filtered
@@ -57,7 +60,9 @@ Directive.prototype.applyFilters = function(value){
 module.exports = {
 
 
-	parse:function(attr, prefix){
+	parse:function(attr){
+
+		var prefix = config.prefix
 
 		if(attr.name.indexOf(prefix) === -1) return null
 

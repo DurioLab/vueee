@@ -6,7 +6,6 @@ module.exports = {
 	uppercase: function(value) {
 		return value.toUpperCase()
 	},
-
 	delegate: function(handler, selectors){
 		return function(e){
 			var match = selectors.every(function(selector){

@@ -1,3 +1,6 @@
+var config     = require('./config'),
+		watchArray = require('./watchArray')
+
 module.exports = {
 	text: function (value) {
 		this.el.textContent = value || ''
@@ -33,5 +36,29 @@ module.exports = {
 				this.el.removeEventListener(event, this.handlers[event])
 			}
 		}
+	},
+
+	each: {
+		update: function(collection){
+			watchArray(collection, this.mutate.bind(this))
+		},
+		mutate: function(mutation){
+			console.log(mutation)
+			console.log(this)
+		}
+	}
+}
+
+var push = [].push,
+		slice = [].slice
+
+function argmentArray(collection, directive){
+	collection.push = function(element){
+		push.call(this, arguments)
+		directive.mutate({
+			event:'push',
+			elements:slice.call(arguments),
+			collection:collection
+		})
 	}
 }

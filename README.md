@@ -12,3 +12,8 @@ every  e.target.webkitMatchesSelector  slice  [].forEach.call  Object.defineProp
 1. 将指令进行剥离 各司其职
 2. 正则表达式来分析指令，更加简洁
 
+
+### 第二次重构
+1. 代码封装，提高扩展性和易用性 
+2. 增加each，修改数组操作，数组改变时发出通知  watchArray.js
+3. apply方法与arguments参数 main.js Seed.apply(this,arguments)

@@ -12,27 +12,64 @@
       <p sd-text="msg | capitalize"></p>
       <p sd-show="something">YOYOYO</p>
       <p class="button" sd-text="msg"></p>
-      <p sd-class-red="error" sd-text="msg.wow | uppercase"></p>
+      <p sd-class-red="error" sd-text="msg.wow | money"></p>
       <button sd-on-click="removeEl">移除</button>
+
+			<div sd-each="todos">
+				<span sd-text="text"></span>
+			</div>
+
   </div>
 
 	<script>
 		var Seed = require('seed')
-		var app = Seed.create({
-			id:'test',
-			scope:{
-				'msg.wow': 'wow',
-				msg:'hello',
-				hello:'qqqqqq',
-				changeMessage:function(event){
-					app.scope['msg.wow'] = 'hola'
-				},
-				removeEl:function(){
-					
-					// app.destroy()
-				}
+
+		Seed.filter('money', function (value) {
+		    return '$' + value.toFixed(2)
+		})
+
+		var Todos = Seed.extend({
+			changeMessage:function(){
+
 			}
 		})
+
+		new Todos('#test',{
+			msg:'123',
+			'msg.wow':200,
+			todos:[
+				{
+					title:'1',
+					done:false
+				},{
+					title:'2',
+					done:true
+				}
+			]
+		})
+
+		console.log(Todos)
+
+		// Seed.seed('test',{
+		// 		'msg.wow': 'wow',
+		// 		msg:'hello',
+		// 		hello:'qqqqqq',
+		// 		changeMessage:function(event){
+		// 			app.scope['msg.wow'] = 'hola'
+		// 		},
+		// 		removeEl:function(){
+		// 			// app.destroy()
+		// 		},
+		// 		todos:[
+		// 			{
+		// 				title:'1',
+		// 				done:false
+		// 			},{
+		// 				title:'2',
+		// 				done:true
+		// 			}
+		// 		]
+		// })
 	</script>
 </body>
 </html>
