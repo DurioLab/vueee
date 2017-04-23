@@ -3,6 +3,11 @@
 <head>
 	<title>Vue源码解读</title>
 	<script src="dist/seed.js"></script>
+	<style>
+		.red{
+			color: red;
+		}
+	</style>
 </head>
 <body>
 	<h1>你好</h1>
@@ -15,8 +20,8 @@
       <p sd-class-red="error" sd-text="msg.wow | money"></p>
       <button sd-on-click="removeEl">移除</button>
 
-			<div sd-each="todos">
-				<span sd-text="text"></span>
+			<div sd-each-todo="todos">
+				<span sd-text="todo.title"></span>
 			</div>
 
   </div>
@@ -28,15 +33,11 @@
 		    return '$' + value.toFixed(2)
 		})
 
-		var Todos = Seed.extend({
-			changeMessage:function(){
 
-			}
-		})
-
-		new Todos('#test',{
+		new Seed('#test',{
 			msg:'123',
 			'msg.wow':200,
+			error:'error',
 			todos:[
 				{
 					title:'1',
@@ -45,10 +46,15 @@
 					title:'2',
 					done:true
 				}
-			]
+			],
+			changeMessage:function(){
+				this.scope['msg.wow'] = 300
+			},
+			removeEl:function(){
+				this.destroy()
+			}
 		})
 
-		console.log(Todos)
 
 		// Seed.seed('test',{
 		// 		'msg.wow': 'wow',

@@ -4,15 +4,8 @@ var config      = require('./config'),
 		filters     = require('./filters')
 
 
-function buildSelector () {
-    config.selector = Object.keys(directives).map(function (directive) {
-        return '[' + config.prefix + '-' + directive + ']'
-    }).join()
-}
-
 Seed.config = config
 
-buildSelector()
 
 
 Seed.extend = function(opts){

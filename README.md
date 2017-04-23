@@ -17,3 +17,5 @@ every  e.target.webkitMatchesSelector  slice  [].forEach.call  Object.defineProp
 1. 代码封装，提高扩展性和易用性 
 2. 增加each，修改数组操作，数组改变时发出通知  watchArray.js
 3. apply方法与arguments参数 main.js Seed.apply(this,arguments)
+
+### sd-each works
