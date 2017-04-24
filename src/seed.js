@@ -4,10 +4,17 @@ var config 			= require('./config'),
 var map = Array.prototype.map,
 		each = Array.prototype.forEach
 
+//lazy init
+var ctrlAttr,
+		eachAttr
+
+
 
 
 function Seed(el, data, options){
 
+	ctrlAttr = config.prefix + '-controller'
+	eachAttr = config.prefix + '-each'
 
 	if (typeof el === 'string') {
 		el = document.querySelector(el)
@@ -24,17 +31,27 @@ function Seed(el, data, options){
 		dataCopy[key] = data[key]
 	}
 
-	this._compileNode(el)
 
 
+	// 如果有controller
+	var ctrlID = el.getAttribute(ctrlAttr),
+			controller = null
 
-	// 修改为 => 遍历子节点
-	// var els = el.querySelectorAll(config.selector)
-	// ;[].forEach.call(els, this._compileNode.bind(this))
+	if (ctrlID) {
+		controller = controllers[ctrlID]
+		el.removeAttribute(ctrlAttr) 
+		if (!controller) throw new Error('controller ' + ctrlID + ' is not defined.')
+	}
 
+	this._compileNode(el, true)
+
+	// 调用controller  注入scope 通过赋值scope 修改dom
+	if (controller) {
+		controller.call(null, this.scope, this)
+	}
 
 	// 通过调用set初始化所有的数据
-	for (var key in this._bindings) {
+	for (var key in dataCopy) {
 		this.scope[key] = dataCopy[key];
 	}
 
@@ -42,43 +59,61 @@ function Seed(el, data, options){
 }
 
 
-Seed.prototype._compileNode = function(node){
-	var self = this,
-			ctrl = config.prefix + '-controller'
-
-	if (node.nodeType === 3) {
+Seed.prototype._compileNode = function(node, root){
 	
+	var self = this
+	
+	if (node.nodeType === 3) {
+
 		self._compileTextNode(node) //编译文本节点
 	
 	} else if (node.attributes && node.attributes.length) {
-		
-		var attrs = map.call(node.attributes, function(attr) {
-			return {
-				name:attr.name,
-				expressions:attr.value.split(',')
+
+		var eachExp = node.getAttribute(eachAttr),
+				ctrlExp = node.getAttribute(ctrlAttr)
+
+		if (eachExp) { // 是each循环
+
+			var binding = bindingParser.parse(eachAttr, eachExp)
+			if (binding) {
+				self._bind(node, binding)
 			}
-		})
 
-		attrs.forEach(function(attr){
+		} else if (!ctrlExp || root) { // 跳过嵌套controllers
 
-			if (attr.name === ctrl) return alert('ctrl')
-
-			attr.expressions.forEach(function(exp){
-				var binding = bindingParser.parse(attr.name, exp)
-				if (binding) {
-					self._bind(node, binding)
+			var attrs = map.call(node.attributes, function(attr) {
+				return {
+					name:attr.name,
+					expressions:attr.value.split(',')
 				}
-
 			})
-			
-		})
+
+			attrs.forEach(function(attr){
+				var valid = false
+				attr.expressions.forEach(function(exp){
+					var binding = bindingParser.parse(attr.name, exp)
+					if (binding) {
+						valid = true
+						self._bind(node, binding)
+					}
+
+					if (valid) {
+						node.removeAttribute(attr.name) // 防止重复指令
+					}
+				})
+			})
+
+			if (node.childNodes.length) {
+				each.call(node.childNodes, function(child){
+					self._compileNode(child)  // 递归调用
+				})
+			}
+
+		}
 	}
 
-	if (!node['sd-block'] && node.childNodes.length) {
-		each.call(node.childNodes, function(child){
-			self._compileNode(child)  // 递归调用
-		})
-	}
+
+
 
 }
 
@@ -90,39 +125,39 @@ Seed.prototype._bind = function(node, bindingInstance){
 
 	bindingInstance.seed = this
 	bindingInstance.el = node
-	node.removeAttribute(config.prefix + '-' + bindingInstance.directiveName)
 
-	var key = bindingInstance.key, //each
-			scope = this.scope,
-			epr = this._options.eachPrefixRE,
-			isEach = epr && epr.test(key)
-	
+	var key = bindingInstance.key, //todo.title
+			epr = this._options.eachPrefixRE, // todo.
+			isEachKey = epr && epr.test(key), // /todo./.test('todo.title')
+			seed = this
 
 	// 确保作用域链工作在嵌套控制器中
-	if (isEach) {
+	if (isEachKey) {
 		// todo. 移除掉  todo.title
 		key = key.replace(epr, '')
-		scope = this._options.parentScope  // 对于循环 继承父作用域
+	} else if( epr ){
+		seed = this._options.parentSeed
 	}
 
-	var binding = this._bindings[key] || this._createBinding(key, scope)
+	var binding = seed._bindings[key] || seed._createBinding(key)
 
 	binding.instances.push(bindingInstance)
 
-	if (bindingInstance.bind) {
+	if (bindingInstance.bind) { // each有bind
 		bindingInstance.bind(binding.value) //binding.value 作用不大
 	}
 
 }
 
-Seed.prototype._createBinding = function(key, scope){
+Seed.prototype._createBinding = function(key){
 	var binding = {
 		value:null,
 		instances:[]
 	}
+
 	this._bindings[key] = binding
 
-	Object.defineProperty(scope, key, {
+	Object.defineProperty(this.scope, key, {
 		get:function(){
 			return binding.value
 		},

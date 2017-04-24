@@ -24,8 +24,6 @@ function Binding(directiveName, expression){
 		}
 	}
 
-	this.directiveName = directiveName
-
 	var rawKey   = expression.match(KEY_RE)[0],
 			argMatch = rawKey.match(ARG_RE) //click:remove   remove=>key  click=>arg
 

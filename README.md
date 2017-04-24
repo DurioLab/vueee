@@ -25,3 +25,8 @@ every  e.target.webkitMatchesSelector  slice  [].forEach.call  Object.defineProp
 2. 嵌套scope
 3. 指令绑定方式修改  click:remove  :
 4. Directive类 => Binding类
+
+
+### 修改控制器controller逻辑
+1. 将controller的控制 放到Seed内部处理
+2. each循环的修缮[TODO: 有BUG待处理, 内部元素渲染DOM失败]

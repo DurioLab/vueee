@@ -21,9 +21,12 @@
       <button sd-on="click:removeEl">移除</button>
 
 			<div sd-each="todo:todos">
-				<span sd-text="todo.title"></span>
+				<p sd-text="todo.title"></p>
 			</div>
 			
+			<div sd-controller="Todo">
+				<span sd-text="name"></span>
+			</div>
 
   </div>
 
@@ -35,6 +38,10 @@
 		})
 
  		var s = Date.now()
+
+ 		Seed.controller('Todo',function(scope){
+ 			scope.name = '123'
+ 		})
 
 
 		Seed.bootstrap({
